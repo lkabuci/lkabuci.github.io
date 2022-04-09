@@ -1,0 +1,7 @@
+@import url(https://allfont.net/allfont.css?fonts=saxmono);
+
+body {
+    font-family: 'saxMono', arial;
+    font-size: 48px;
+    text-shadow: 4px 4px 4px #aaa;
+}
