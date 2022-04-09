@@ -1,7 +1,5 @@
-@import url(https://allfont.net/allfont.css?fonts=saxmono);
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300&display=swap');
 
 body {
-    font-family: 'saxMono', arial;
-    font-size: 48px;
-    text-shadow: 4px 4px 4px #aaa;
+    font-family: 'Roboto Mono', monospace;
 }
