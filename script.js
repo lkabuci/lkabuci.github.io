@@ -2,11 +2,11 @@ let activeFilters = new Set();
 let blogPosts = [];
 
 async function fetchBlogPosts() {
-    const response = await fetch('posts/index.json');
+    const response = await fetch('/posts/index.json');
     const postList = await response.json();
     
     for (const postFile of postList) {
-        const postResponse = await fetch(`posts/${postFile}`);
+        const postResponse = await fetch(`/posts/${postFile}`);
         const postContent = await postResponse.text();
         const postData = parseMarkdown(postContent);
         blogPosts.push(postData);
@@ -14,7 +14,9 @@ async function fetchBlogPosts() {
     
     generateBlogPosts();
     setupEventListeners();
+    handleInitialURL();
 }
+
 
 function parseMarkdown(markdown) {
     const lines = markdown.split('\n');
@@ -44,7 +46,7 @@ function generateBlogPosts() {
     const postsContainer = document.getElementById('posts');
     postsContainer.innerHTML = blogPosts.map(post => `
         <article class="post">
-            <h2><a href="#" onclick="loadFullPost('${post.id}'); return false;">${post.title}</a></h2>
+            <h2><a href="/${post.id}">${post.title}</a></h2>
             <p class="date">${post.date}</p>
             <p>${post.summary}</p>
             <div class="tags">
@@ -62,7 +64,18 @@ function setupEventListeners() {
     document.querySelectorAll('nav a').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            showTab(link.dataset.tab);
+            const tabName = link.dataset.tab;
+            history.pushState(null, '', tabName === 'home' ? '/' : `/${tabName}`);
+            showTab(tabName);
+        });
+    });
+
+    document.querySelectorAll('.post h2 a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const postId = link.getAttribute('href').substring(1);
+            history.pushState(null, '', `/${postId}`);
+            loadFullPost(postId);
         });
     });
 }
@@ -112,6 +125,14 @@ function showTab(tabName) {
     document.querySelectorAll('nav a').forEach(link => {
         link.classList.toggle('active', link.dataset.tab === tabName);
     });
+
+    if (tabName === 'about') {
+        fetch('about.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('about').innerHTML = data;
+            });
+    }
 }
 
 function loadFullPost(postId) {
@@ -124,65 +145,30 @@ function loadFullPost(postId) {
                 <h1>${post.title}</h1>
                 <p class="date">${post.date}</p>
                 ${content}
+                <a href="/" class="back-link">Back to posts</a>
             </article>
         `;
+        document.querySelector('.back-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            history.pushState(null, '', '/');
+            generateBlogPosts();
+            setupEventListeners();
+        });
     }
 }
 
-function generateBlogPosts() {
-    const postsContainer = document.getElementById('posts');
-    postsContainer.innerHTML = blogPosts.map(post => `
-        <article class="post">
-            <h2><a href="/${post.id}" onclick="navigateToPost(event, '${post.id}');">${post.title}</a></h2>
-            <p class="date">${post.date}</p>
-            <p>${post.summary}</p>
-            <div class="tags">
-                ${post.tags.map(tag => `<span class="tag" data-tag="${tag}">${tag}</span>`).join('')}
-            </div>
-        </article>
-    `).join('');
+function handleInitialURL() {
+    const path = window.location.pathname.substring(1);
+    if (path === '' || path === 'index.html') {
+        showTab('home');
+    } else if (path === 'about') {
+        showTab('about');
+    } else {
+        loadFullPost(path);
+    }
 }
 
-function navigateToPost(event, postId) {
-    event.preventDefault();
-    history.pushState(null, '', `/${postId}`);
-    loadFullPost(postId);
-}
-
-// load the content of about.html
-document.addEventListener('DOMContentLoaded', function() {
-    const tabs = document.querySelectorAll('nav a');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function(event) {
-            event.preventDefault();
-            const targetTab = this.getAttribute('data-tab');
-
-            tabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-
-            tabContents.forEach(content => {
-                content.style.display = content.id === targetTab ? 'block' : 'none';
-            });
-
-            if (targetTab === 'about') {
-                fetch('about.html')
-                    .then(response => response.text())
-                    .then(data => {
-                        document.getElementById('about').innerHTML = data;
-                    });
-            }
-        });
-    });
-});
+window.addEventListener('popstate', handleInitialURL);
 
 // Initialize the blog
 document.addEventListener('DOMContentLoaded', fetchBlogPosts);
-
-window.addEventListener('popstate', () => {
-    const postId = location.pathname.substring(1);
-    if (postId) {
-        loadFullPost(postId);
-    }
-});

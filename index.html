@@ -4,15 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Gruvbox Blog</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <script>
+        (function(){
+            var redirect = sessionStorage.redirect;
+            delete sessionStorage.redirect;
+            if (redirect && redirect != location.href) {
+                history.replaceState(null, null, redirect);
+            }
+        })();
+    </script>
 </head>
 <body>
     <header>
         <h1>Red's Blog</h1>
         <nav>
-            <a href="#" data-tab="home" class="active">Home</a>
-            <a href="#" data-tab="about">About</a>
+            <a href="/" data-tab="home" class="active">Home</a>
+            <a href="/about" data-tab="about">About</a>
         </nav>
     </header>
     <main id="home" class="tab-content">
@@ -25,6 +34,6 @@
         <!-- About content will be dynamically loaded here -->
     </section>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.0.3/marked.min.js"></script>
-    <script src="script.js"></script>
+    <script src="/script.js"></script>
 </body>
 </html>
